@@ -5,6 +5,9 @@ Created on Thu Jun 30 08:39:14 2022
 
 @author: eadali
 """
+from numpy.linalg import inv
+from scipy.linalg import solve_continuous_are
+
 def RK4(fun, t_span, y0, n):
     """Explicit Runge-Kutta method of order 4.
 
@@ -45,5 +48,26 @@ def RK4(fun, t_span, y0, n):
 
 class Kalman:
     def __init__(self, A, B, C, D, Q, R):
-        self.A, self.B, self.C, self.D = A, B, C, D
-        self.Q, self.R = Q, R
+        self.set_matrices(A, B, C, D, Q, R)
+        
+    def integrate(self, t, u):
+        pass
+        
+    
+    def set_initial_value(self, t0, x0):
+        pass
+    
+    def get_initial_value(self):
+        pass
+    
+    def set_matrices(self, A, B, C, D, Q, R):
+        self.__A, self.__B = A, B
+        self.__C, self.__D = C, D
+        self.__Q, self.__R = Q, R
+        # P = solve_continuous_are(self.A.transpose(), self.C.transpose(), self.Q, self.R)
+        # self.K = P * C.transpose() * inv(R)
+        
+    def get_matrices(self):
+        return self.__A, self.__B, self.__C, self.__D
+    
+    
