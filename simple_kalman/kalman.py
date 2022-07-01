@@ -5,9 +5,19 @@ Created on Thu Jun 30 08:39:14 2022
 
 @author: eadali
 """
+from warnings import warn
+from numpy import isscalar, array, dot, transpose, zeros
 from numpy.linalg import inv
-from scipy.linalg import solve_continuous_are
+from scipy.linalg import solve_continuous_are as care
 
+
+
+def asmatrix(x):
+    if isscalar(x):
+        x = [[x]]
+    return array(x)    
+    
+    
 def RK4(fun, t_span, y0, n):
     """Explicit Runge-Kutta method of order 4.
 
@@ -48,26 +58,78 @@ def RK4(fun, t_span, y0, n):
 
 class Kalman:
     def __init__(self, A, B, C, D, Q, R):
-        self.set_matrices(A, B, C, D, Q, R)
-        
-    def integrate(self, t, u):
-        pass
-        
-    
+        self.set_model_gains(A, B, C, D, Q, R)
+        self.set_initial_value(None, None)
+
+    def __call__(self, t, u, y):
+        return self.integrate(t, u, y)
+
+    def set_model_gains(self, A, B, C, D, Q, R):
+        # t0, x0 = self.get_initial_value()
+        # self.set_initial_value(t0, x0)
+        self.A, self.B = asmatrix(A), asmatrix(B)
+        self.C, self.D = asmatrix(C), asmatrix(D)
+        self.Q, self.R = asmatrix(Q), asmatrix(R)
+
+    def get_model_gains(self):
+        return self.A, self.B, self.C, self.D, self.Q, self.R
+
     def set_initial_value(self, t0, x0):
-        pass
-    
+        self.t0, self.x0 = t0, x0
+
     def get_initial_value(self):
-        pass
-    
-    def set_matrices(self, A, B, C, D, Q, R):
-        self.__A, self.__B = A, B
-        self.__C, self.__D = C, D
-        self.__Q, self.__R = Q, R
-        # P = solve_continuous_are(self.A.transpose(), self.C.transpose(), self.Q, self.R)
-        # self.K = P * C.transpose() * inv(R)
+        return self.t0, self.x0
+
+    def __set_none_value(self, t, x):
+        """Set None states for first cycle."""
+        t0, x0 = self.get_initial_value()
+        if t0 is None:
+            t0 = t
+        if x0 is None:
+            x0 = x
+        self.set_initial_value(t0, x0)
+
+    def __check_monotonic_timestamp(self, t0, t):
+        """Check timestamp is monotonic."""
+        if t < t0:
+            msg = 'Current timestamp is smaller than initial timestamp.'
+            warn(msg, RuntimeWarning)
+            return False
+        return True
+
+    def integrate(self, t, u, y):
+        self.__set_none_value(t, zeros(self.A.shape[0]))
+        t0, x0 = self.get_initial_value()
+        # Check monotonic timestamp
+        if not self.__check_monotonic_timestamp(t0, t):
+            t0 = t
+        # Calculate time step
+        dt = t - t0
+        # ---------------------
+        P = care(self.A.T, self.C.T, self.Q, self.R)
+        K = dot(dot(P, transpose(self.C)), inv(self.R))
+        dxdt = (self.A * self.x0 + self.B * u
+                + K * (y - self.C * self.x0 - self.D * u))
+        x = x0 + dt * dxdt
+        self.set_initial_value(t, x)
+        return x
         
-    def get_matrices(self):
-        return self.__A, self.__B, self.__C, self.__D
     
     
+#TODO: not use dot
+
+
+a = -1
+b = 1
+c = 1
+d = 0
+q = 0.01
+r = 0.01
+from control import lqe
+print(lqe(a,1,c,q,r))
+kal = Kalman(a, b, c, d, q, r)
+kal.integrate(0, 0, 0)
+
+
+
+
