@@ -98,7 +98,7 @@ class Kalman:
         return True
 
     def integrate(self, t, u, y):
-        self.__set_none_value(t, zeros(self.A.shape[0]))
+        self.__set_none_value(t, zeros((self.A.shape[0],1)))
         t0, x0 = self.get_initial_value()
         # Check monotonic timestamp
         if not self.__check_monotonic_timestamp(t0, t):
@@ -108,10 +108,8 @@ class Kalman:
         # ---------------------
         P = care(self.A.T, self.C.T, self.Q, self.R)
         K = dot(dot(P, transpose(self.C)), inv(self.R))
-        print(x0)
-        input(dot(self.A , x0) )
-        dxdt = (dot(self.A, x0) + dot(self.B, u)
-                + K * (y - dot(self.C, self.x0) - self.D * u))
+        dxdt = dot(self.A, x0) + dot(self.B, u)
+        dxdt = dxdt + K * (y - dot(self.C, self.x0) - self.D * u)
         x = x0 + dt * dxdt
         self.set_initial_value(t, x)
         return x

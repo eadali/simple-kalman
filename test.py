@@ -12,7 +12,7 @@ from matplotlib import pyplot as plt
 from numpy import diff
 
 m, k, b = 1.0, 1.0, 0.2
-system = MassSpringDamper(mass=m, spring_const=k, damping_const=b)
+system = MassSpringDamper(mass=m, spring_const=k, damping_const=b, noise_std=0.1)
 system.set_initial_value(initial_position=1.0, initial_velocity=0.0)
 
 A = [[ 0.0,  1.0],
@@ -21,8 +21,8 @@ B = [[0.0],
      [1/m]]
 C = [[1, 0]]
 D = 0
-Q = [[0.00001, 0],
-     [0, 0.00001]]
+Q = [[0.1, 0],
+     [0, 0.1]]
 R = 0.02
 
 kalman = Kalman(A, B, C, D, Q, R)
@@ -33,7 +33,7 @@ for i in range(800):
     timestamp, measurement = system.get_measurement()
     
     # Calculate control signal by using PID controller
-    control = kalman(timestamp, 0, measurement)
+    control = kalman(timestamp, 0, measurement)[0]
     
     # Feed control signal to system
     system.set_input(0)
@@ -50,7 +50,7 @@ ax1.set_ylabel('Measured Position [m]')
 ax1.plot(time, meas, 'b')
 ax1.grid()
 ax2.set_ylabel('Force [N]')
-ax2.plot(time, cont, 'g')
+ax1.plot(time, cont, '.-g')
 ax2.grid()
 ax3.set_xlabel('Time [s]')
 ax3.set_ylabel('Derivative Term')
