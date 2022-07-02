@@ -108,8 +108,10 @@ class Kalman:
         # ---------------------
         P = care(self.A.T, self.C.T, self.Q, self.R)
         K = dot(dot(P, transpose(self.C)), inv(self.R))
-        dxdt = (self.A * self.x0 + self.B * u
-                + K * (y - self.C * self.x0 - self.D * u))
+        print(x0)
+        input(dot(self.A , x0) )
+        dxdt = (dot(self.A, x0) + dot(self.B, u)
+                + K * (y - dot(self.C, self.x0) - self.D * u))
         x = x0 + dt * dxdt
         self.set_initial_value(t, x)
         return x
@@ -119,16 +121,16 @@ class Kalman:
 #TODO: not use dot
 
 
-a = -1
-b = 1
-c = 1
-d = 0
-q = 0.01
-r = 0.01
-from control import lqe
-print(lqe(a,1,c,q,r))
-kal = Kalman(a, b, c, d, q, r)
-kal.integrate(0, 0, 0)
+# a = -1
+# b = 1
+# c = 1
+# d = 0
+# q = 0.01
+# r = 0.01
+# from control import lqe
+# print(lqe(a,1,c,q,r))
+# kal = Kalman(a, b, c, d, q, r)
+# kal.integrate(0, 0, 0)
 
 
 
